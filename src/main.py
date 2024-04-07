@@ -38,6 +38,7 @@ def main():
 
     start_button_clicked = False
     pve_selected = False
+    pvp_selected = False
 
     while True:
         if current_screen == 'intro':
@@ -74,19 +75,24 @@ def main():
                         choice1_selected = True
                         choice2_selected = False
                         pve_selected = True
-                        show_gun_image = True
+                        #show_gun_image = True
                     elif choice2_game_button_rect.collidepoint(mouse_x, mouse_y):
                         choice1_selected = False
                         choice2_selected = True
-                        show_gun_image = False
+                        pvp_selected = True
+                        #show_gun_image = False
                     elif start_game_button_rect.collidepoint(mouse_x, mouse_y):
                         if pve_selected:
-                            start_button_clicked = True
+                            start_button_clicked = 1
+                        elif pvp_selected:
+                            start_button_clicked = 2
 
         pygame.display.update()
 
-        if start_button_clicked:
+        if start_button_clicked == 1:
             GameScene("PVE")
+        elif start_button_clicked == 2:
+            GameScene("PVP")
 
 def show_intro_screen(DISPLAYSURF, intro_screen, button_rect, button_hover, font):
     DISPLAYSURF.blit(intro_screen, (0, 0))

@@ -3,9 +3,10 @@ import sys
 import math  # Thêm thư viện math để tính toán khoảng cách giữa các đối tượng
 import random
 
-from .pve_scene import PVE
-from ..models.character import Character
-from ..models.gun import Gun
+from scenes.pve_scene import PVE
+from scenes.pvp_scene import PVP
+from models.character import Character
+from models.gun import Gun
 
 class GameScene:
     def __init__(self, type) -> None:
@@ -20,4 +21,6 @@ class GameScene:
         pygame.display.set_caption("Game bắn súng")
         if (type == "PVE"):
             PVE(screen)
+        elif (type =="PVP"): 
+            PVP(screen)
 

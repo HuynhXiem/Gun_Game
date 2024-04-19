@@ -2,7 +2,7 @@ import pygame
 import sys
 from pygame.locals import *
 
-from .scenes.game_scene import GameScene
+from scenes.game_scene import GameScene
 
 def main():
     pygame.init()

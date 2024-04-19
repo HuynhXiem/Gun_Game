@@ -1,15 +1,15 @@
 import random
 import pygame
-from ..models.character import Character
-from ..models.gun import Gun
+from models.character import Character
+from models.gun import Gun
 
 WHITE = (255,255,255)
 class PVE:
     def __init__(self, screen) -> None:
         self.running = True
-        _character = Character(100, 100, (300, 350), 1, screen)
+        _character = Character(100, 100, (300, 350), 1, screen, "character1")
         _gun = Gun(_character, 10)
-        _enemy = Character(100, 100, (500, 350), -1, screen)
+        _enemy = Character(100, 100, (500, 350), -1, screen, "character2")
         _gun_enemy = Gun(_enemy, 10)
 
         _character.enemy = _enemy
@@ -153,3 +153,8 @@ class PVE:
                     _gun_enemy.update()
             pygame.display.flip()
             clock.tick(60)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                    pygame.quit()

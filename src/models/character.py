@@ -6,12 +6,12 @@ jumpHeight = 15
 class Character(pygame.sprite.Sprite):
     enemy = False
 
-    def __init__(self, hp, dame, pos, direct, screen):
+    def __init__(self, hp, dame, pos, direct, screen, player):
         pygame.sprite.Sprite.__init__(self)
         self.hp = hp
         self.max_hp = hp
         self.dame = dame
-        self.image = pygame.image.load("res/images/character.png").convert_alpha()
+        self.image = pygame.image.load("res/images/" + player +".png").convert_alpha()
         ratio = self.image.get_rect().width / self.image.get_rect().height
         self.image = pygame.transform.scale(self.image, (50, 50 // ratio)) 
         self.direct = direct
@@ -28,8 +28,12 @@ class Character(pygame.sprite.Sprite):
         self.rect.x += dx
         self.rect.y += dy
         self.draw_hp_bar()
-        
 
+    def updatePos(self, dx, dy):
+        self.rect.x = dx
+        self.rect.y = dy
+        self.draw_hp_bar()
+        
     def flip(self):
         self.direct *= -1
         self.image = pygame.transform.flip(self.image, True, False)
@@ -45,6 +49,21 @@ class Character(pygame.sprite.Sprite):
             else:
                 self.isJump = False
                 self.jumpCount = jumpIndex
+
+    def move(self):
+        MOVE_SPEED = 5
+
+        keys = pygame.key.get_pressed()
+        dx, dy = 0, 0
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+            dx -= MOVE_SPEED
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+            dx += MOVE_SPEED
+        if keys[pygame.K_UP] or keys[pygame.K_w]:
+            self.isJump = True
+
+        self.update(dx,dy)
+        self.jump()
 
     def draw_hp_bar(self):
         hp_bar_width = self.rect.width

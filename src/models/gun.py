@@ -3,6 +3,7 @@ from .bullet import bullet
 class Gun(pygame.sprite.Sprite):
     # bullets = pygame.sprite.Group()
     max_bull = 3
+
     def __init__(self, character, level):
         super().__init__()
         self.image = pygame.image.load("res/images/gun.png").convert_alpha()
@@ -18,6 +19,7 @@ class Gun(pygame.sprite.Sprite):
         if self.direct == -1:
             self.image = pygame.transform.flip(self.image, True, False)
         self.update()
+
     def shoot(self):
         if self.current_bull < self.max_bull:
             print(self.current_bull, self.max_bull)
@@ -26,9 +28,11 @@ class Gun(pygame.sprite.Sprite):
             self.current_bull += 1
             return _bullet
         return False
+
     def flip(self):
         self.direct *= -1
         self.image = pygame.transform.flip(self.image, True, False)
+        
     def update(self):
         if not self.character.alive():
             self.kill()

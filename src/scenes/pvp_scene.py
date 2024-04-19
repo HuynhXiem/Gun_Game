@@ -1,21 +1,25 @@
 import random
 import pygame
+import sys
 from coop.network import Network
 from models.character import Character
 from models.gun import Gun
+from scenes.lose_screen import LoseScreen  # Import màn hình thua
+from scenes.win_screen import WinScreen    # Import màn hình thắng
 
-WHITE = (255,255,255)
 class PVP:
-    def __init__(self, screen) -> None:
+    def __init__(self, screen, model) -> None:
         network = Network()
         startPos = read_pos(network.getPos())
         print("Player pos:" , startPos)
 
+        self.screen = screen
+        self.model = model
         self.running = True
 
-        _player1 = Character(100, 100, (startPos[0], 350), 1, screen, "character1")
+        _player1 = Character(100, 100, (startPos[0], 400), 1, screen, "character1")
         _gun = Gun(_player1, 10)
-        _player2 = Character(100, 100, (startPos[1], 350), -1, screen, "character2")
+        _player2 = Character(100, 100, (startPos[1], 400), -1, screen, "character2")
         _gun_player2 = Gun(_player2, 10)
     
         _player1.enemy = _player2
@@ -29,24 +33,40 @@ class PVP:
     
         MOVE_SPEED = 5  # Giảm tốc độ di chuyển của enemy để không lại quá gần character
         last_shot_time = 0
-        last_shot_time_e = 0
         shoot_delay = 500
         reload_time = 2000
         reloaded_time = 0
-        reloaded_time_e = 0
-
         clock = pygame.time.Clock()
 
-        counter = 0
+        # Tải hình ảnh nền và thay đổi kích thước nếu cần thiết
+        background_image = pygame.image.load('res/images/bg.png')
+        background_rect = background_image.get_rect()
+        pygame.display.set_caption('PVP')
     
         while self.running:
             current_time = pygame.time.get_ticks()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    sys.exit()
                     self.running = False
 
-            screen.fill(WHITE)
+            # Kiểm tra trạng thái của nhân vật
+
+            if not _player1.alive():
+                # Chuyển sang màn hình thua cuộc
+                self.model.current_screen = 'lose'
+                all_sprites.empty()
+                self.running = False
+
+            elif not _player2.alive():
+                # Chuyển sang màn hình thắng
+                self.model.current_screen = 'win'
+                all_sprites.empty()
+                self.running = False
+
+            else:
+                screen.blit(background_image, background_rect)
 
             all_sprites.draw(screen)
 
@@ -110,8 +130,6 @@ class PVP:
                         _player1.update(0, dy)
                 if all_sprites.has(_gun):
                     _gun.update()
-                _player1.jump()
-
                 
                 if all_sprites.has(_player2):
                     if (dx_e > 0 and 750 >_player2.rect.x) or (dx_e < 0 and 0 < _player2.rect.x):
@@ -120,14 +138,16 @@ class PVP:
                         _player2.updatePos(0, dy_e)
                 if all_sprites.has(_gun_player2):
                     _gun_player2.update()
+
+                _player1.jump()
                 _player2.jump()
-            # else:
-            #     if _player1.alive():
-            #         _player1.update(0, 0)
-            #         _gun.update()
-            #     else: 
-            #         _player2.update(0, 0)
-            #         _gun_player2.update()
+            else:
+                if _player1.alive():
+                    _player1.update(0, 0)
+                    _gun.update()
+                else: 
+                    _player2.update(0, 0)
+                    _gun_player2.update()
             # pygame.display.update()
             pygame.display.flip()
             clock.tick(60)

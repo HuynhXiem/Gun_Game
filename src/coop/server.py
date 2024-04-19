@@ -26,7 +26,7 @@ def read_pos(str):
 def make_pos(tup):
    return str(tup[0]) + "," + str(tup[1])
 
-pos = [(500,350), (300,350)]
+pos = [(500,400), (300,400)]
 
 
 def threaded_client(conn, player) :

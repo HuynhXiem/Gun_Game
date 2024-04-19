@@ -1,15 +1,22 @@
 import random
 import pygame
+import sys
 from models.character import Character
 from models.gun import Gun
+from scenes.lose_screen import LoseScreen  # Import màn hình thua
+from scenes.win_screen import WinScreen    # Import màn hình thắng
 
-WHITE = (255,255,255)
+
 class PVE:
-    def __init__(self, screen) -> None:
+    def __init__(self, screen, model) -> None:
+        self.screen = screen
+        self.model = model
         self.running = True
-        _character = Character(100, 100, (300, 350), 1, screen, "character1")
+
+        _character = Character(100, 100, (300, 400), 1, screen, "character1")
         _gun = Gun(_character, 10)
-        _enemy = Character(100, 100, (500, 350), -1, screen, "character2")
+        _enemy = Character(100, 100, (500, 400), -1, screen, "character2")
+
         _gun_enemy = Gun(_enemy, 10)
 
         _character.enemy = _enemy
@@ -33,14 +40,35 @@ class PVE:
         direct_e = random.choice([1, -1])
         clock = pygame.time.Clock()
 
+        # Tải hình ảnh nền và thay đổi kích thước nếu cần thiết
+        background_image = pygame.image.load('res/images/bg.png')
+        background_rect = background_image.get_rect()
+        pygame.display.set_caption('PVE')
+
         while self.running:
             current_time = pygame.time.get_ticks()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    sys.exit()
                     self.running = False
 
-            screen.fill(WHITE)
+            # Kiểm tra trạng thái của nhân vật
+
+            if not _character.alive():
+                # Chuyển sang màn hình thua cuộc
+                self.model.current_screen = 'lose'
+                all_sprites.empty()
+                self.running = False
+
+            elif not _enemy.alive():
+                # Chuyển sang màn hình thắng
+                self.model.current_screen = 'win'
+                all_sprites.empty()
+                self.running = False
+
+            else:
+                screen.blit(background_image, background_rect)
 
             all_sprites.draw(screen)
 
@@ -56,7 +84,7 @@ class PVE:
                 bull = _gun.shoot()
                 if bull:
                     all_sprites.add(bull)
-                last_shot_time = current_time 
+                last_shot_time = current_time
 
             if _gun.current_bull == _gun.max_bull and reloaded_time == 0:
                 reloaded_time = current_time
@@ -65,7 +93,7 @@ class PVE:
                     _gun.current_bull = 0
                     reloaded_time = 0
             if _character.alive() and _enemy.alive():
-                #enemy play
+                # enemy play
                 # Kiểm tra khoảng cách và điều chỉnh hành động của enemy
                 dy_e = 0
                 dx_e = 0
@@ -73,8 +101,10 @@ class PVE:
                 check_have_moved = True
                 for bul in bullets_char:
                     if abs(bul.rect.x - _enemy.rect.centerx) < 70:
-                        if _enemy.rect.top < bul.rect.y < _enemy.rect.bottom:
-                            if not _enemy.isJump:
+                        if _enemy.rect.top - random.randrange(0,20) < bul.rect.y < _enemy.rect.bottom + random.randrange(0,20):
+                            rand_rang = random.randrange(0,100)
+                            print(rand_rang)
+                            if (not _enemy.isJump) and 33 < rand_rang < 63:
                                 _enemy.isJump = True
                             else:
                                 dx_e -= MOVE_SPEED * _enemy.direct
@@ -88,11 +118,11 @@ class PVE:
                     dx_e += MOVE_SPEED * direct_e
                     if (move_count_e == num_move_e):
                         move_count_e = 0
-                        direct_e = random.choice([1,-1])
+                        direct_e = random.choice([1, -1])
                         # elif _enemy.isJump
                         #     else:
                         #         dx_e -= MOVE_SPEED
-                # if distance > 200 and distance < 600: 
+                # if distance > 200 and distance < 600:
                 #     dx_e += MOVE_SPEED if bool(random.getrandbits(1)) else -MOVE_SPEED
 
                 # Tự động bắn character
@@ -100,7 +130,7 @@ class PVE:
                     bull = _gun_enemy.shoot()
                     if bull:
                         all_sprites.add(bull)
-                    last_shot_time_e = current_time 
+                    last_shot_time_e = current_time
                 if _gun_enemy.current_bull == _gun_enemy.max_bull and reloaded_time_e == 0:
                     reloaded_time_e = current_time
                 else:
@@ -109,7 +139,8 @@ class PVE:
                         reloaded_time_e = 0
 
                 # flip
-                if (_character.direct == 1 and _character.rect.x > _enemy.rect.x) or (_character.direct == -1 and _character.rect.x <= _enemy.rect.x):
+                if (_character.direct == 1 and _character.rect.x > _enemy.rect.x) or (
+                        _character.direct == -1 and _character.rect.x <= _enemy.rect.x):
                     _character.flip()
                     _enemy.flip()
 
@@ -127,16 +158,16 @@ class PVE:
                                     if (target.hp <= 0):
                                         target.kill()
                                     bullet.die()
-                #update
+                # update
                 if all_sprites.has(_character):
-                    if (dx_e > 0 and 750 >_character.rect.x) or (dx_e < 0 and 0 < _character.rect.x):
+                    if (dx_e > 0 and 750 > _character.rect.x) or (dx_e < 0 and 0 < _character.rect.x):
                         _character.update(dx, dy)
                     else:
                         _character.update(0, dy)
                 if all_sprites.has(_gun):
                     _gun.update()
                 if all_sprites.has(_enemy):
-                    if (dx_e > 0 and 750 >_enemy.rect.x) or (dx_e < 0 and 0 < _enemy.rect.x):
+                    if (dx_e > 0 and 750 > _enemy.rect.x) or (dx_e < 0 and 0 < _enemy.rect.x):
                         _enemy.update(dx_e, dy_e)
                     else:
                         _enemy.update(0, dy_e)
@@ -148,13 +179,9 @@ class PVE:
                 if _character.alive():
                     _character.update(0, 0)
                     _gun.update()
-                else: 
+                else:
                     _enemy.update(0, 0)
                     _gun_enemy.update()
+
             pygame.display.flip()
             clock.tick(60)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
-                    pygame.quit()

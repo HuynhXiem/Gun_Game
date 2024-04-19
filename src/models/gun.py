@@ -22,7 +22,6 @@ class Gun(pygame.sprite.Sprite):
 
     def shoot(self):
         if self.current_bull < self.max_bull:
-            print(self.current_bull, self.max_bull)
             _bullet = bullet(self, (self.rect.midright[0] - 20, self.rect.midright[1] - 10),self.damage)
             self.bullets.append(_bullet)
             self.current_bull += 1

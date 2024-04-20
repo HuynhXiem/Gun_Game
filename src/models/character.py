@@ -23,6 +23,7 @@ class Character(pygame.sprite.Sprite):
         self.isJump = False
         self.jumpCount = jumpIndex
         self.screen = screen
+        self.player = player
 
     def update(self, dx, dy):
         self.rect.x += dx

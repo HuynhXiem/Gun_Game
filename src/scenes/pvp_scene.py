@@ -4,22 +4,22 @@ import sys
 from coop.network import Network
 from models.character import Character
 from models.gun import Gun
+from models.player import Player
 from scenes.lose_screen import LoseScreen  # Import màn hình thua
 from scenes.win_screen import WinScreen    # Import màn hình thắng
 
 class PVP:
     def __init__(self, screen, model) -> None:
         network = Network()
-        startPos = read_pos(network.getPos())
-        print("Player pos:" , startPos)
+        _player_receive = network.getPlayer()
 
         self.screen = screen
         self.model = model
         self.running = True
 
-        _player1 = Character(100, 100, (startPos[0], 400), 1, screen, "character1")
+        _player1 = Character(100, 100, _player_receive.pos, 1, screen, "character1")
         _gun = Gun(_player1, 10)
-        _player2 = Character(100, 100, (startPos[1], 400), -1, screen, "character2")
+        _player2 = Character(100, 100, (_player_receive.startEnemyPos, 400), -1, screen, "character2")
         _gun_player2 = Gun(_player2, 10)
     
         _player1.enemy = _player2
@@ -33,9 +33,11 @@ class PVP:
     
         MOVE_SPEED = 5  # Giảm tốc độ di chuyển của enemy để không lại quá gần character
         last_shot_time = 0
+        last_shot_time_e = 0
         shoot_delay = 500
-        reload_time = 2000
+        reload_time = 4000
         reloaded_time = 0
+        reloaded_time_e = 0
         clock = pygame.time.Clock()
 
         # Tải hình ảnh nền và thay đổi kích thước nếu cần thiết
@@ -79,10 +81,11 @@ class PVP:
             if keys[pygame.K_UP] or keys[pygame.K_w]:
                 _player1.isJump = True
 
-
+            isShot = False
             if keys[pygame.K_RETURN] and current_time - last_shot_time > shoot_delay:
                 bull = _gun.shoot()
                 if bull:
+                    isShot = True
                     all_sprites.add(bull)
                 last_shot_time = current_time 
 
@@ -96,9 +99,22 @@ class PVP:
             if _player1.alive() and _player2.alive():
 
                 # Xử lý nhận data từ enemy - player 2
-                player2_pos = read_pos(network.send(make_pos((_player1.rect.x, _player1.rect.y))))
+
+                player1_send = Player((_player1.rect.x, _player1.rect.y), isShot)
+                player2_receive = network.send(player1_send)
                 
-                # Nhận event bắn từ enemy 
+                # Nhận event bắn từ enemy - player 2
+                if player2_receive.isShot and current_time - last_shot_time_e > shoot_delay:
+                    bull = _gun_player2.shoot()
+                    if bull:
+                        all_sprites.add(bull)
+                    last_shot_time_e = current_time
+                if _gun_player2.current_bull == _gun_player2.max_bull and reloaded_time_e == 0:
+                    reloaded_time_e = current_time
+                else:
+                    if _gun_player2.current_bull == _gun_player2.max_bull and current_time - reloaded_time_e > reload_time:
+                        _gun_player2.current_bull = 0
+                        reloaded_time_e = 0
 
                 # flip
                 if (_player1.direct == 1 and _player1.rect.x > _player2.rect.x) or (_player1.direct == -1 and _player1.rect.x <= _player2.rect.x):
@@ -120,9 +136,9 @@ class PVP:
                                         target.kill()
                                     bullet.die()
 
-                dx_e = player2_pos[0]
-                dy_e = player2_pos[1]
-                #update
+                dx_e = (player2_receive.pos)[0]
+                dy_e = (player2_receive.pos)[1]
+                # update
                 if all_sprites.has(_player1):
                     if (dx_e > 0 and 750 >_player1.rect.x) or (dx_e < 0 and 0 < _player1.rect.x):
                         _player1.update(dx, dy)
@@ -148,19 +164,6 @@ class PVP:
                 else: 
                     _player2.update(0, 0)
                     _gun_player2.update()
-            # pygame.display.update()
+
             pygame.display.flip()
             clock.tick(60)
-
-            for event in pygame.event.get():
-               if event.type == pygame.QUIT:
-                    self.running = False
-                    network.closeConnection()
-                    pygame.quit()
-
-def read_pos(str):
-   str = str.split(",")
-   return int(str[0]), int(str[1])
-
-def make_pos(tup):
-   return str(tup[0]) + "," + str(tup[1])

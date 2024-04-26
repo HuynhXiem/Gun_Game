@@ -1,7 +1,7 @@
 import random
 import pygame
 import sys
-from coop.network import Network
+from utils.network import Network
 from models.character import Character
 from models.gun import Gun
 from models.player import Player
@@ -12,15 +12,16 @@ class PVP:
     def __init__(self, screen, model) -> None:
         network = Network()
         _player_receive = network.getPlayer()
+        _playerID = _player_receive.player
 
         self.screen = screen
         self.model = model
         self.running = True
 
         _player1 = Character(100, 100, _player_receive.pos, 1, screen, "character1")
-        _gun = Gun(_player1, 10)
+        _gun = Gun(_player1, 30)
         _player2 = Character(100, 100, (_player_receive.startEnemyPos, 400), -1, screen, "character2")
-        _gun_player2 = Gun(_player2, 10)
+        _gun_player2 = Gun(_player2, 30)
     
         _player1.enemy = _player2
         _player2.enemy = _player1
@@ -99,8 +100,7 @@ class PVP:
             if _player1.alive() and _player2.alive():
 
                 # Xử lý nhận data từ enemy - player 2
-
-                player1_send = Player((_player1.rect.x, _player1.rect.y), isShot)
+                player1_send = Player((_player1.rect.x, _player1.rect.y), isShot, _playerID)
                 player2_receive = network.send(player1_send)
                 
                 # Nhận event bắn từ enemy - player 2

@@ -1,5 +1,4 @@
 import pygame
-from .sprite_sheet import sprite_sheet 
 jumpIndex = 15
 jumpHeight = 15
 

@@ -3,6 +3,7 @@ from .bullet import bullet
 class Gun(pygame.sprite.Sprite):
     # bullets = pygame.sprite.Group()
     max_bull = 3
+    
 
     def __init__(self, character, level):
         super().__init__()
@@ -16,14 +17,16 @@ class Gun(pygame.sprite.Sprite):
         self.direct = character.direct
         self.bullets = []
         self.current_bull = 0
+        self.shoot_sound = pygame.mixer.Sound("res/sounds/shoot.mp3")
         if self.direct == -1:
             self.image = pygame.transform.flip(self.image, True, False)
         self.update()
 
     def shoot(self):
         if self.current_bull < self.max_bull:
-            print(self.character.player , ": ", self.current_bull)
+            # print(self.character.player , ": ", self.current_bull)
             _bullet = bullet(self, (self.rect.midright[0] - 20, self.rect.midright[1] - 10),self.damage)
+            self.shoot_sound.play()
             self.bullets.append(_bullet)
             self.current_bull += 1
             return _bullet

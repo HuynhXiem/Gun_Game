@@ -1,7 +1,6 @@
 import socket
 import sys
 import pickle
-import time
 from models.player import Player
 from _thread import *
 
@@ -23,38 +22,35 @@ s.listen(2)
 print("Waiting for client connection")
 
 pos = [(300,400), (500,400)]
-players = [Player(pos[0], False, 500) , Player(pos[1], False, 300)]
+players = [Player(pos[0], False, 0, 500) , Player(pos[1], False, 1, 300)]
 
 
 def threaded_client(conn, player) :
    conn.send(pickle.dumps(players[player]))
    reply = ""
-   counter = 0
 
    while True:
-      if counter == 50:
-         try:
-            data = pickle.loads(conn.recv(2048))
-            players[player] = data
 
-            if not data:
-               print("Disconnected")
-               break
-            else:
-               if player == 1:
-                  reply = players[0]
-               else:
-                  reply = players[1]
-                  # print("Received ", player,": ", data.print())
-                  # print("Sending ", player, ": ", reply.print())
-               
-            conn.sendall(pickle.dumps(reply))
-         except:
+      try:
+         data = pickle.loads(conn.recv(2048))
+         players[player] = data
+
+         if not data:
+            print("Disconnected")
             break
-         counter = 0
+         else:
+            if player == 1:
+               reply = players[0]
+            else:
+               reply = players[1]
 
-      counter +=1
-      # time.sleep(0.05)
+            if players[player].isShot and player == 0:
+               print("Received ", player,": ", data.print())
+               print("Sending ", player, ": ", reply.print())
+            
+         conn.sendall(pickle.dumps(reply))
+      except:
+         break
 
 
 currentPlayer = 0
